@@ -14,6 +14,8 @@ import { Numbered } from "./sections/Numbered";
 import { SectionShell } from "./sections/SectionShell";
 import { Stats } from "./sections/Stats";
 import { TextBlock } from "./sections/TextBlock";
+import { Bullets } from "./sections/Bullets";
+import { StackShowcase } from "./StackShowcase";
 import { Timeline } from "./sections/Timeline";
 
 function toMedia(items: Item[], type: "image" | "video"): MediaItem[] {
@@ -63,14 +65,23 @@ export function SectionRenderer({
       return <Logos section={section} items={items} />;
     case "text":
       return <TextBlock section={section} items={items} />;
+    case "bullets":
+      return <Bullets section={section} items={items} />;
     case "circle-image":
     case "circle-video": {
       const isVideo = section.layout_type === "circle-video";
       const media = toMedia(items, isVideo ? "video" : "image");
       if (media.length === 0) return null;
+      const noun = isVideo ? "videos" : "graphics";
       return (
-        <SectionShell id={section.slug} title={section.title} subtitle={section.subtitle}>
-          {isVideo ? <CircleVideoShowcase items={media} /> : <CircleImageShowcase items={media} />}
+        <SectionShell section={section}>
+          {section.variant === "stack" ? (
+            <StackShowcase items={media} noun={noun} />
+          ) : isVideo ? (
+            <CircleVideoShowcase items={media} />
+          ) : (
+            <CircleImageShowcase items={media} />
+          )}
         </SectionShell>
       );
     }

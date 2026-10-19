@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ItemForm } from "@/components/admin/ItemForm";
 import { requireAdminPage } from "@/lib/auth";
 import { LAYOUT_FIELDS } from "@/lib/layouts";
+import { sectionName } from "@/lib/nav";
 import type { Item, Section } from "@/lib/types";
 
 export default async function EditItemPage({ params }: PageProps<"/admin/sections/[id]/items/[itemId]">) {
@@ -18,7 +19,7 @@ export default async function EditItemPage({ params }: PageProps<"/admin/section
     <div className="space-y-8">
       <div>
         <Link href={`/admin/sections/${id}`} className="text-sm text-muted hover:text-fg">
-          ← {section.title}
+          ← {sectionName(section)}
         </Link>
         <h1 className="mt-3 font-display text-3xl font-semibold">edit item</h1>
       </div>

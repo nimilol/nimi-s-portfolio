@@ -4,6 +4,7 @@ import { SortableList } from "@/components/admin/SortableList";
 import { loadAdminData } from "@/lib/admin-data";
 import { requireAdminPage } from "@/lib/auth";
 import { LAYOUT_LABELS } from "@/lib/layouts";
+import { sectionName } from "@/lib/nav";
 
 export default async function Dashboard() {
   const { supabase } = await requireAdminPage();
@@ -36,7 +37,7 @@ export default async function Dashboard() {
         kind="sections"
         rows={data.sections.map((s) => ({
           id: s.id,
-          title: s.title,
+          title: sectionName(s),
           meta: `${LAYOUT_LABELS[s.layout_type]}${s.is_builtin ? "" : " · custom"}`,
           badge: { text: s.status, on: s.visible },
           href: `/admin/sections/${s.id}`,

@@ -98,8 +98,16 @@ Final checklist:
 
 - **Dashboard:** every section, with item count and "visible" or "hidden". Drag ⋮⋮ to change the order of the page.
 - **A section:** add, edit or delete items, and drag ⋮⋮ to reorder them. You can rename the section, hide it, or choose whether it shows in the top bar.
-- **Site settings:** name, pitch, bio, profile photo, accent color, contact links, SEO and which sections appear in the top bar.
+- **Site settings:** the big hero text, tagline, pitch, button texts, optional hero image, bio, profile photo
+  (plus the floating-photo switch), accent color, contact links, SEO and which sections appear in the top bar.
 - **Hero, About and Contact** get their content from Site settings.
+- **Every section** has a small **label** (the spaced text with the yellow line, e.g. "areas of focus") and a big **heading**
+  (e.g. "what i do."). Edit both on the section's page. Leave the heading empty to show only the label.
+- **Bold words:** in the pitch, bio and text blocks, wrap words in `**double stars**` to make them bright and bold.
+- **Graphics and Videos** have a **Style** switch: "Circle fade" or "Stacked cards".
+- **Cards** (Featured, AI, Tech, Crypto, Viral…): add a cover image for a big image card, or leave it out for a clean text row.
+  The optional **Tag** shows as a small label (e.g. AI, GROWTH).
+- **Currently:** a bullet list. Tick "Highlight this line" to give it a yellow dot (e.g. "open to collaborations").
 - **Built-in sections** can only be hidden. **Your custom sections** can also be deleted.
 - After you save, **reload the live site** to see the change. No redeploy is needed.
 

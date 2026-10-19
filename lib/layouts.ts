@@ -2,7 +2,7 @@
 // "extra.xxx" fields are saved inside the item's `extra` JSON column.
 import type { LayoutType } from "./types";
 
-export type FieldType = "text" | "textarea" | "url" | "number" | "image" | "video" | "tags";
+export type FieldType = "text" | "textarea" | "url" | "number" | "image" | "video" | "tags" | "checkbox";
 
 export type Field = {
   key: string; // column name, or "extra.something"
@@ -31,11 +31,12 @@ export const LAYOUT_FIELDS: Record<LayoutType, Field[]> = {
     { key: "title", label: "Label", type: "text", required: true, hint: "e.g. impressions" },
   ],
   cards: [
+    { key: "media_path", label: "Cover image (optional)", type: "image", hint: "With an image you get a big image card; without, a clean text row." },
+    { key: "extra.tag", label: "Tag (optional)", type: "text", hint: "Small label above the title, e.g. AI, GROWTH" },
     TITLE,
     { ...DESC, hint: "One line." },
-    { ...LINK, hint: "Where 'read ↗' goes, e.g. the X post." },
-    { key: "extra.link_label", label: "Link text", type: "text", hint: "Default: read" },
-    { key: "media_path", label: "Cover image (optional)", type: "image" },
+    { ...LINK, hint: "e.g. the X post." },
+    { key: "extra.link_label", label: "Link text", type: "text", hint: "Default: view on x" },
     { key: "number_value", label: "Big number (optional)", type: "number", hint: "e.g. impressions: 1.2" },
     { key: "number_suffix", label: "Number suffix", type: "text", hint: "e.g. m+" },
     { key: "extra.number_label", label: "Number label", type: "text", hint: "e.g. impressions" },
@@ -63,6 +64,10 @@ export const LAYOUT_FIELDS: Record<LayoutType, Field[]> = {
     { key: "link_url", label: "X post link (optional)", type: "url" },
   ],
   text: [{ key: "title", label: "Heading (optional)", type: "text" }, { key: "description", label: "Text", type: "textarea", required: true }],
+  bullets: [
+    { key: "title", label: "Line", type: "text", required: true, hint: "e.g. open to collaborations" },
+    { key: "extra.highlight", label: "Highlight this line (yellow dot)", type: "checkbox" },
+  ],
 };
 
 export const LAYOUT_LABELS: Record<LayoutType, string> = {
@@ -78,10 +83,14 @@ export const LAYOUT_LABELS: Record<LayoutType, string> = {
   "circle-image": "Circular image fade",
   "circle-video": "Circular video fade",
   text: "Text block",
+  bullets: "Bullet list",
 };
 
 // Layouts you can pick when adding a new custom section.
-export const CUSTOM_LAYOUTS: LayoutType[] = ["cards", "links", "text", "logos", "circle-image", "circle-video"];
+export const CUSTOM_LAYOUTS: LayoutType[] = ["cards", "links", "bullets", "text", "logos", "circle-image", "circle-video"];
+
+// Image and video showcases can be shown as a circle or as stacked cards.
+export const SHOWCASE_LAYOUTS: LayoutType[] = ["circle-image", "circle-video"];
 
 // These sections take their content from Site settings, not from items.
 export const SETTINGS_LAYOUTS: LayoutType[] = ["hero", "about", "contact"];

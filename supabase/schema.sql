@@ -10,17 +10,26 @@
 create table if not exists public.sections (
   id           uuid primary key default gen_random_uuid(),
   slug         text not null unique,
-  title        text not null default '',
+  label        text,                       -- small spaced label, e.g. "areas of focus"
+  title        text not null default '',   -- big heading, e.g. "what i do."
   subtitle     text,
-  layout_type  text not null check (layout_type in (
-                 'hero','about','contact','numbered','stats','cards','links',
-                 'timeline','logos','circle-image','circle-video','text')),
+  layout_type  text not null,
+  variant      text,                       -- showcases: 'circle' or 'stack'
   sort_order   integer not null default 0,
   is_hidden    boolean not null default false,
   is_builtin   boolean not null default false,
   show_in_nav  boolean not null default true,
   created_at   timestamptz not null default now()
 );
+-- (for databases created by an older version of this file)
+alter table public.sections add column if not exists label text;
+alter table public.sections add column if not exists variant text;
+
+-- Allowed layouts
+alter table public.sections drop constraint if exists sections_layout_type_check;
+alter table public.sections add constraint sections_layout_type_check check (layout_type in (
+  'hero','about','contact','numbered','stats','cards','links',
+  'timeline','logos','circle-image','circle-video','text','bullets'));
 
 -- One entry inside a section (a card, a link, a video...)
 create table if not exists public.items (

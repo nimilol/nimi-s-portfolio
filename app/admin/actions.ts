@@ -7,7 +7,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAdmin, isAdminEmail, requireAdmin } from "@/lib/auth";
-import { CUSTOM_LAYOUTS, LAYOUT_FIELDS } from "@/lib/layouts";
+import { CUSTOM_LAYOUTS, LAYOUT_FIELDS, SHOWCASE_LAYOUTS } from "@/lib/layouts";
 import { isStoragePath } from "@/lib/media";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_BUCKET, isSupabaseConfigured } from "@/lib/supabase/env";
@@ -182,12 +182,16 @@ export async function saveSection(_prev: FormState, form: FormData): Promise<For
   const { supabase } = await requireAdmin();
   const id = text(form, "id");
   const title = text(form, "title");
-  if (!title) return { error: "Title is required." };
+  const label = text(form, "label");
+  if (!title && !label) return { error: "Add a label or a heading (or both)." };
+  const variant = text(form, "variant");
   const { error } = await supabase
     .from("sections")
     .update({
+      label: label || null,
       title,
       subtitle: text(form, "subtitle") || null,
+      ...(variant ? { variant: variant === "stack" ? "stack" : "circle" } : {}),
       is_hidden: form.get("is_hidden") === "on",
       show_in_nav: form.get("show_in_nav") === "on",
     })
@@ -207,12 +211,13 @@ export async function setSectionHidden(id: string, hidden: boolean) {
 export async function createSection(_prev: FormState, form: FormData): Promise<FormState> {
   const { supabase } = await requireAdmin();
   const title = text(form, "title");
+  const label = text(form, "label");
   const layout = text(form, "layout_type") as LayoutType;
-  if (!title) return { error: "Name is required." };
+  if (!title && !label) return { error: "Add a label or a heading." };
   if (!CUSTOM_LAYOUTS.includes(layout)) return { error: "Pick a layout." };
 
   // Make a unique web-friendly id for the section, e.g. "my-podcasts".
-  const base = slugify(title);
+  const base = slugify(label || title);
   const { data: existing } = await supabase.from("sections").select("slug, sort_order");
   const slugs = new Set((existing ?? []).map((s) => s.slug));
   let slug = base;
@@ -231,9 +236,11 @@ export async function createSection(_prev: FormState, form: FormData): Promise<F
     .from("sections")
     .insert({
       slug,
+      label: label || null,
       title,
       subtitle: text(form, "subtitle") || null,
       layout_type: layout,
+      variant: SHOWCASE_LAYOUTS.includes(layout) ? (text(form, "variant") === "stack" ? "stack" : "circle") : null,
       sort_order: sortOrder,
       is_builtin: false,
       show_in_nav: form.get("show_in_nav") === "on",
@@ -288,8 +295,11 @@ export async function saveSettings(_prev: FormState, form: FormData): Promise<Fo
     }
   }
 
-  // Remember the old photo so we can delete it if it was replaced.
-  const { data: oldPhoto } = await supabase.from("settings").select("value").eq("key", "photo_path").maybeSingle();
+  if (values.floating_avatar !== undefined) values.floating_avatar = values.floating_avatar === "off" ? "off" : "on";
+
+  // Remember the old uploaded images so we can delete them if they were replaced.
+  const IMAGE_KEYS = ["photo_path", "hero_image_path"] as const;
+  const { data: oldImages } = await supabase.from("settings").select("key, value").in("key", [...IMAGE_KEYS]);
 
   const rows = Object.entries(values).map(([key, value]) => ({ key, value }));
   const { error } = await supabase.from("settings").upsert(rows);
@@ -305,8 +315,10 @@ export async function saveSettings(_prev: FormState, form: FormData): Promise<Fo
     }
   }
 
-  const oldPath = typeof oldPhoto?.value === "string" ? oldPhoto.value : null;
-  if (values.photo_path !== undefined && oldPath && oldPath !== values.photo_path) await removeFiles([oldPath]);
+  for (const key of IMAGE_KEYS) {
+    const old = oldImages?.find((r) => r.key === key)?.value;
+    if (values[key] !== undefined && typeof old === "string" && old !== values[key]) await removeFiles([old]);
+  }
 
   refreshSite();
   return { ok: "Settings saved. Reload the live site to see them." };

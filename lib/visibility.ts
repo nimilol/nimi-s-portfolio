@@ -9,7 +9,7 @@ export function itemsFor(section: Section, items: Item[]) {
 export function hasContent(section: Section, items: Item[], s: Settings): boolean {
   switch (section.layout_type) {
     case "hero":
-      return !!(s.name.trim() || s.pitch.trim());
+      return !!(s.hero_title.trim() || s.pitch.trim());
     case "about":
       return !!(s.bio.trim() || s.photo_path.trim());
     case "contact":

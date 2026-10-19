@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { loadAdminData } from "@/lib/admin-data";
 import { requireAdminPage } from "@/lib/auth";
 import { SETTINGS_LAYOUTS } from "@/lib/layouts";
+import { sectionName } from "@/lib/nav";
 
 export const metadata: Metadata = { title: "admin", robots: { index: false } };
 
@@ -12,7 +13,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const data = await loadAdminData(supabase);
   const sections = data.ok ? data.sections.map((s) => ({
         id: s.id,
-        title: s.title,
+        title: sectionName(s),
         // hero / about / contact get their content from Site settings, so no item count
         count: SETTINGS_LAYOUTS.includes(s.layout_type) ? null : s.count,
         visible: s.visible,

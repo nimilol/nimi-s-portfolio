@@ -13,13 +13,16 @@ export type LayoutType =
   | "logos"
   | "circle-image"
   | "circle-video"
-  | "text";
+  | "text"
+  | "bullets";
 
 export type Section = {
   id: string;
   slug: string;
-  title: string;
+  label: string | null; // small spaced label above the heading, e.g. "areas of focus"
+  title: string; // the big heading, e.g. "what i do." (can be empty)
   subtitle: string | null;
+  variant: string | null; // showcases: "circle" or "stack"
   layout_type: LayoutType;
   sort_order: number;
   is_hidden: boolean;
@@ -44,9 +47,14 @@ export type Item = {
 };
 
 export type Settings = {
-  name: string;
+  name: string; // top bar, footer, SEO
+  hero_title: string; // the big text in the hero
   tagline: string;
   pitch: string;
+  hero_primary_label: string;
+  hero_secondary_label: string;
+  hero_image_path: string;
+  floating_avatar: string; // "on" or "off"
   bio: string;
   photo_path: string;
   accent: string;

@@ -2,22 +2,25 @@
 // Site settings: name, pitch, bio, photo, accent color, contact links, nav items, SEO.
 import { useActionState, useState } from "react";
 import { saveSettings } from "@/app/admin/actions";
+import { sectionName } from "@/lib/nav";
 import type { Section, Settings } from "@/lib/types";
 import { inputClass } from "./ItemForm";
 import { MediaUpload } from "./MediaUpload";
 
 type FieldDef = { key: keyof Settings; label: string; area?: boolean; hint?: string };
 
+const STARS = "Wrap words in **double stars** to make them bright and bold.";
+
+const HERO_FIELDS: FieldDef[] = [
+  { key: "hero_title", label: "Big hero text", hint: "The huge text at the top of your site, e.g. nimi" },
+  { key: "tagline", label: "Small label above it", hint: "e.g. ai, tech & crypto" },
+  { key: "pitch", label: "Pitch", area: true, hint: STARS },
+  { key: "hero_primary_label", label: "Main button text", hint: "Goes to your contact section. e.g. work with me" },
+  { key: "hero_secondary_label", label: "Second button text", hint: "Goes to your first work section. e.g. see work" },
+];
+
 const GROUPS: { title: string; fields: FieldDef[] }[] = [
-  {
-    title: "Hero",
-    fields: [
-      { key: "name", label: "Your name" },
-      { key: "tagline", label: "Small line above your name", hint: "e.g. ai, tech & crypto" },
-      { key: "pitch", label: "One-line pitch", area: true },
-    ],
-  },
-  { title: "About", fields: [{ key: "bio", label: "Bio", area: true, hint: "Leave an empty line between paragraphs." }] },
+  { title: "About", fields: [{ key: "bio", label: "Bio", area: true, hint: `Leave an empty line between paragraphs. ${STARS}` }] },
   {
     title: "Contact",
     fields: [
@@ -29,6 +32,7 @@ const GROUPS: { title: string; fields: FieldDef[] }[] = [
   {
     title: "SEO (Google + link previews)",
     fields: [
+      { key: "name", label: "Your name", hint: "Shown in the top bar and footer." },
       { key: "seo_title", label: "Page title" },
       { key: "seo_description", label: "Description", area: true },
       { key: "footer_note", label: "Footer note" },
@@ -40,13 +44,39 @@ export function SettingsForm({ settings, sections }: { settings: Settings; secti
   const [state, formAction, pending] = useActionState(saveSettings, undefined);
   const [uploading, setUploading] = useState(false);
   const [accent, setAccent] = useState(settings.accent);
+  const [avatar, setAvatar] = useState(settings.floating_avatar !== "off");
   const valid = /^#[0-9a-fA-F]{6}$/.test(accent);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-10">
+      <fieldset className="space-y-4">
+        <legend className="mb-3 font-display text-xl">Hero (top of the page)</legend>
+        {HERO_FIELDS.map((f) => (
+          <label key={f.key} className="block space-y-2 text-sm">
+            <span className="block">{f.label}</span>
+            {f.area ? (
+              <textarea name={f.key} defaultValue={settings[f.key]} rows={3} className={inputClass} />
+            ) : (
+              <input name={f.key} defaultValue={settings[f.key]} className={inputClass} />
+            )}
+            {f.hint && <span className="block text-xs text-muted">{f.hint}</span>}
+          </label>
+        ))}
+        <div className="space-y-2 text-sm">
+          <span className="block">Hero image (optional)</span>
+          <MediaUpload name="hero_image_path" kind="image" folder="hero" initialPath={settings.hero_image_path} onBusyChange={setUploading} />
+          <span className="block text-xs text-muted">Shown next to the big text on laptops, above it on phones. A PNG with a see-through background looks best.</span>
+        </div>
+      </fieldset>
+
       <fieldset className="space-y-3">
         <legend className="mb-3 font-display text-xl">Profile photo</legend>
         <MediaUpload name="photo_path" kind="image" folder="profile" initialPath={settings.photo_path} onBusyChange={setUploading} />
+        <input type="hidden" name="floating_avatar" value={avatar ? "on" : "off"} />
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={avatar} onChange={(e) => setAvatar(e.target.checked)} className="accent-[var(--accent)]" />
+          Show my photo floating in the bottom-right corner (links to my X)
+        </label>
       </fieldset>
 
       <fieldset className="space-y-3">
@@ -89,7 +119,7 @@ export function SettingsForm({ settings, sections }: { settings: Settings; secti
           .map((s) => (
             <label key={s.id} className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="nav" value={s.id} defaultChecked={s.show_in_nav} className="accent-[var(--accent)]" />
-              {s.title}
+              {sectionName(s)}
             </label>
           ))}
       </fieldset>

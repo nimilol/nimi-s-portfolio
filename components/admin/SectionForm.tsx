@@ -2,6 +2,8 @@
 // Edit a section's title, subtitle, and the "hide" / "show in top nav" switches.
 import { useActionState, useTransition } from "react";
 import { deleteSection, saveSection } from "@/app/admin/actions";
+import { SHOWCASE_LAYOUTS } from "@/lib/layouts";
+import { sectionName } from "@/lib/nav";
 import type { Section } from "@/lib/types";
 import { inputClass } from "./ItemForm";
 
@@ -14,13 +16,35 @@ export function SectionForm({ section }: { section: Section }) {
       <input type="hidden" name="id" value={section.id} />
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm">
-          <span className="block">Section title</span>
-          <input name="title" defaultValue={section.title} className={inputClass} required />
+          <span className="block">Small label</span>
+          <input name="label" defaultValue={section.label ?? ""} placeholder="e.g. areas of focus" className={inputClass} />
+          <span className="block text-xs text-muted">The small spaced text with the yellow line.</span>
         </label>
         <label className="space-y-2 text-sm">
+          <span className="block">Big heading</span>
+          <input name="title" defaultValue={section.title} placeholder="e.g. what i do." className={inputClass} />
+          <span className="block text-xs text-muted">Leave empty to show only the label.</span>
+        </label>
+        <label className="space-y-2 text-sm md:col-span-2">
           <span className="block">Subtitle (optional)</span>
           <input name="subtitle" defaultValue={section.subtitle ?? ""} className={inputClass} />
         </label>
+        {SHOWCASE_LAYOUTS.includes(section.layout_type) && (
+          <fieldset className="space-y-2 text-sm md:col-span-2">
+            <legend className="mb-2">Style</legend>
+            <div className="flex flex-wrap gap-3">
+              {[
+                ["circle", "Circle fade"],
+                ["stack", "Stacked cards"],
+              ].map(([value, text]) => (
+                <label key={value} className="flex cursor-pointer items-center gap-2 border border-line px-3 py-2 has-[:checked]:border-accent">
+                  <input type="radio" name="variant" value={value} defaultChecked={(section.variant ?? "circle") === value} className="accent-[var(--accent)]" />
+                  {text}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
       </div>
       <div className="flex flex-wrap gap-6 text-sm">
         <label className="flex items-center gap-2">
@@ -43,7 +67,7 @@ export function SectionForm({ section }: { section: Section }) {
             type="button"
             disabled={deleting}
             onClick={() => {
-              if (confirm(`Delete the section "${section.title}" and ALL its items and files? This can't be undone.`)) {
+              if (confirm(`Delete the section "${sectionName(section)}" and ALL its items and files? This can't be undone.`)) {
                 startDelete(() => deleteSection(section.id));
               }
             }}

@@ -5,7 +5,8 @@
   --bg: #0a0a0a;
   --fg: #f2f0ea;
   --muted: #8a8a85;
-  --line: #1f1f1f;
+  --line: #222222;
+  --panel: #0e0e0e;
   --accent: #f2b544;
 }
 
@@ -14,14 +15,17 @@
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-panel: var(--panel);
   --color-accent: var(--accent);
   --font-sans: var(--font-inter);
   --font-display: var(--font-inter-tight);
+  --font-mono: var(--font-jb-mono), ui-monospace, monospace;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: clip; }
 
 body {
+  overflow-x: clip; /* nothing (like tilted cards) can cause sideways scrolling */
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-inter), system-ui, sans-serif;

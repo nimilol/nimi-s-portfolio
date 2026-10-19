@@ -1,4 +1,4 @@
-// Projects I've worked with: logo tiles with a "see my work" link.
+// Clients / projects you've worked with: rounded tiles with a round logo and "name ↗".
 import Image from "next/image";
 import { mediaUrl } from "@/lib/media";
 import type { Item, Section } from "@/lib/types";
@@ -7,35 +7,29 @@ import { SectionShell } from "./SectionShell";
 
 export function Logos({ section, items }: { section: Section; items: Item[] }) {
   return (
-    <SectionShell id={section.slug} title={section.title} subtitle={section.subtitle}>
+    <SectionShell section={section}>
       <Reveal>
-        <ul className="grid grid-cols-2 border-l border-t border-line md:grid-cols-3 lg:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
           {items.map((item) => {
             const logo = mediaUrl(item.media_path);
             const Tag = item.link_url ? "a" : "div";
             return (
-              <li key={item.id} className="border-b border-r border-line">
+              <li key={item.id}>
                 <Tag
                   {...(item.link_url ? { href: item.link_url, target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="group flex h-full flex-col justify-between gap-8 p-6"
+                  className="group flex h-full flex-col items-center gap-5 rounded-2xl border border-line bg-panel px-4 py-8 text-center transition-colors duration-200 hover:border-fg/30"
                 >
-                  <div className="relative flex h-14 items-center">
+                  <span className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-line bg-[#141414] md:h-24 md:w-24">
                     {logo ? (
-                      <Image
-                        src={logo}
-                        alt={item.title}
-                        fill
-                        sizes="200px"
-                        className="object-contain object-left opacity-70 grayscale transition duration-300 group-hover:opacity-100 group-hover:grayscale-0"
-                      />
+                      <Image src={logo} alt={item.title} fill sizes="96px" className="object-cover" />
                     ) : (
-                      <span className="font-display text-2xl font-semibold">{item.title}</span>
+                      <span className="font-display text-3xl font-semibold">{item.title.slice(0, 1).toUpperCase()}</span>
                     )}
-                  </div>
-                  <div>
-                    {logo && <p className="text-sm">{item.title}</p>}
-                    {item.link_url && <p className="mt-1 text-sm text-muted transition-colors group-hover:text-accent">see my work ↗</p>}
-                  </div>
+                  </span>
+                  <span className="font-mono text-sm lowercase tracking-[0.2em] text-fg/80 transition-colors duration-150 group-hover:text-accent">
+                    {item.title}
+                    {item.link_url && " ↗"}
+                  </span>
                 </Tag>
               </li>
             );

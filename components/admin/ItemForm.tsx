@@ -51,6 +51,8 @@ export function ItemForm({
               required={f.required}
               onBusyChange={setUploading}
             />
+          ) : f.type === "checkbox" ? (
+            <input id={f.key} name={f.key} type="checkbox" defaultChecked={valueOf(item, f.key) === "on"} className="h-5 w-5 accent-[var(--accent)]" />
           ) : f.type === "textarea" ? (
             <textarea id={f.key} name={f.key} defaultValue={valueOf(item, f.key)} rows={4} className={inputClass} required={f.required} />
           ) : (

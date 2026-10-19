@@ -7,6 +7,7 @@ import { loadAdminData } from "@/lib/admin-data";
 import { requireAdminPage } from "@/lib/auth";
 import { LAYOUT_LABELS, SETTINGS_LAYOUTS } from "@/lib/layouts";
 import { mediaUrl } from "@/lib/media";
+import { sectionName } from "@/lib/nav";
 import type { Item } from "@/lib/types";
 
 function rowMeta(item: Item) {
@@ -39,7 +40,7 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
         <Link href="/admin" className="text-sm text-muted hover:text-fg">
           ← Dashboard
         </Link>
-        <h1 className="mt-3 font-display text-3xl font-semibold">{section.title}</h1>
+        <h1 className="mt-3 font-display text-3xl font-semibold">{sectionName(section)}</h1>
         <p className="mt-1 text-sm text-muted">
           {LAYOUT_LABELS[section.layout_type]} ·{" "}
           <span className={section.visible ? "text-accent" : ""}>{section.status}</span>

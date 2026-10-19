@@ -5,11 +5,16 @@ import type { Item, Section, Settings, SiteData } from "./types";
 
 export const DEFAULT_SETTINGS: Settings = {
   name: "nimi",
+  hero_title: "nimi",
   tagline: "ai, tech & crypto",
   pitch:
-    "I write about and build with AI, tech and crypto. Clear takes for people who want to keep up, and working products for teams who want to ship.",
+    "I write about and build with **AI**, **tech** and **crypto**. Clear takes for people who want to keep up, and working products for teams who want to ship.",
+  hero_primary_label: "work with me",
+  hero_secondary_label: "see work",
+  hero_image_path: "",
+  floating_avatar: "on",
   bio: [
-    "I'm nimi — a builder and writer living deep in AI, tech and crypto. I test the tools, write about what matters, and use AI-assisted development to ship real software at a speed traditional timelines can't match.",
+    "I'm nimi — a **builder and writer** living deep in **AI, tech and crypto**. I test the tools, write about what matters, and use AI-assisted development to ship real software at a speed traditional timelines can't match.",
     "Every business has something it needs built. My job: understand it, build it fast, and put a working live version in your hands — not mockups, not promises.",
     "Landing pages, booking systems, portfolios, product demos, threads that explain the hard stuff. You talk directly to the person doing the work — zero layers, zero fluff.",
   ].join("\n\n"),
@@ -24,30 +29,37 @@ export const DEFAULT_SETTINGS: Settings = {
   footer_note: "AI-assisted. Shipped live.",
 };
 
-// [slug, title, subtitle, layout, show_in_nav]
-const BUILTIN: [string, string, string | null, Section["layout_type"], boolean][] = [
-  ["hero", "hero", null, "hero", false],
-  ["about", "about", null, "about", true],
-  ["focus", "focus", "what I cover", "numbered", true],
-  ["highlights", "highlights", null, "stats", false],
-  ["featured", "featured work", null, "cards", true],
-  ["viral", "viral work", "posts that travelled far", "cards", false],
-  ["threads", "best threads", null, "links", false],
-  ["videos", "best videos", null, "circle-video", true],
-  ["graphics", "graphics & illustrations", null, "circle-image", true],
-  ["projects", "projects I've worked with", null, "logos", true],
-  ["experience", "experience", null, "timeline", false],
-  ["shipped", "projects I've shipped", null, "cards", false],
-  ["content", "content", "posts that connect", "links", false],
-  ["contact", "let's talk.", "have a project? reach out.", "contact", true],
+// [slug, label, heading, layout, show_in_nav, variant]
+type Builtin = [string, string, string, Section["layout_type"], boolean, string | null];
+const BUILTIN: Builtin[] = [
+  ["hero", "hero", "", "hero", false, null],
+  ["about", "about", "hi, i'm nimi.", "about", true, null],
+  ["focus", "areas of focus", "what i do.", "numbered", true, null],
+  ["highlights", "highlights", "", "stats", false, null],
+  ["featured", "featured work", "work i'm proud of.", "cards", true, null],
+  ["ai", "ai", "making ai make sense.", "cards", true, null],
+  ["tech", "tech", "tech, explained and built.", "cards", true, null],
+  ["crypto", "crypto", "crypto without the noise.", "cards", true, null],
+  ["viral", "viral", "posts that travelled far.", "cards", false, null],
+  ["threads", "threads", "best threads.", "links", false, null],
+  ["videos", "videos", "best videos.", "circle-video", true, "circle"],
+  ["graphics", "graphics", "illustrations i've made.", "circle-image", true, "circle"],
+  ["projects", "clients", "projects i've worked with.", "logos", true, null],
+  ["experience", "experience", "where i've been building.", "timeline", false, null],
+  ["shipped", "shipped", "projects i've shipped.", "cards", false, null],
+  ["content", "content", "posts that connect.", "links", false, null],
+  ["currently", "currently", "", "bullets", false, null],
+  ["contact", "connect", "let's talk.", "contact", true, null],
 ];
 
-export const SEED_SECTIONS: Section[] = BUILTIN.map(([slug, title, subtitle, layout, nav], i) => ({
+export const SEED_SECTIONS: Section[] = BUILTIN.map(([slug, label, title, layout, nav, variant], i) => ({
   id: `seed-${slug}`,
   slug,
+  label,
   title,
-  subtitle,
+  subtitle: null,
   layout_type: layout,
+  variant,
   sort_order: i,
   is_hidden: false,
   is_builtin: true,
@@ -91,6 +103,10 @@ export const SEED_ITEMS: Item[] = [
     description: "Web3, onchain culture and the builders shipping it.",
     extra: { tags: "Web3 UI, Hackathons, Builder communities" },
   }),
+  item("currently", 0, { title: "writing about ai, tech & crypto" }),
+  item("currently", 1, { title: "building websites & product demos with ai" }),
+  item("currently", 2, { title: "exploring web3 and onchain culture" }),
+  item("currently", 3, { title: "open to collaborations", extra: { highlight: "on" } }),
   item("experience", 0, {
     title: "Independent Builder",
     description:

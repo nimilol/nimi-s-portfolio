@@ -8,10 +8,11 @@ import { inputClass } from "./ItemForm";
 const LAYOUT_HELP: Record<string, string> = {
   cards: "Cards with a title, a line of text and a link (optionally an image and a big number).",
   links: "A clean numbered list of links.",
+  bullets: "A short bullet list. You can highlight a line with a yellow dot.",
   text: "Paragraphs of text.",
   logos: "A strip of logos with links.",
-  "circle-image": "Images fading inside a big circle. Click opens a gallery.",
-  "circle-video": "Muted video loops fading inside a circle. Click plays with sound.",
+  "circle-image": "Images as a fading circle or stacked cards (you choose after). Click opens a gallery.",
+  "circle-video": "Muted video loops as a circle or stacked cards. Click plays with sound.",
 };
 
 export function NewSectionForm() {
@@ -19,8 +20,14 @@ export function NewSectionForm() {
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
       <label className="block space-y-2 text-sm">
-        <span className="block">Section name *</span>
-        <input name="title" required placeholder="e.g. podcasts" className={inputClass} />
+        <span className="block">Small label</span>
+        <input name="label" placeholder="e.g. podcasts" className={inputClass} />
+        <span className="block text-xs text-muted">The small spaced text with the yellow line. Also used in the top bar.</span>
+      </label>
+      <label className="block space-y-2 text-sm">
+        <span className="block">Big heading</span>
+        <input name="title" placeholder="e.g. conversations i've had." className={inputClass} />
+        <span className="block text-xs text-muted">Fill in at least one of the two.</span>
       </label>
       <label className="block space-y-2 text-sm">
         <span className="block">Subtitle (optional)</span>

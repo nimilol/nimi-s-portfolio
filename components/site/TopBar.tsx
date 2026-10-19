@@ -23,7 +23,7 @@ export function TopBar({ name, links, xUrl }: { name: string; links: Link[]; xUr
     >
       <div className="px-5 md:px-10">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6">
-          <a href="#top" className="font-display text-lg font-semibold lowercase tracking-tight">
+          <a href="#top" className="font-display text-lg font-bold lowercase tracking-[0.3em]">
             {name}
           </a>
 
@@ -37,8 +37,13 @@ export function TopBar({ name, links, xUrl }: { name: string; links: Link[]; xUr
 
           <div className="flex items-center gap-4">
             {xUrl && (
-              <a href={xUrl} target="_blank" rel="noopener noreferrer" className="text-sm transition-colors duration-150 hover:text-accent">
-                x
+              <a
+                href={xUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-line px-4 py-2 font-mono text-sm transition-colors duration-150 hover:border-accent hover:text-accent"
+              >
+                x ↗
               </a>
             )}
             {links.length > 0 && (
