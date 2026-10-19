@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Site colors. The accent can be changed later from the admin panel. */
+:root {
+  --bg: #0a0a0a;
+  --fg: #f2f0ea;
+  --muted: #8a8a85;
+  --line: #1f1f1f;
+  --accent: #f2b544;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-inter-tight);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+::selection { background: var(--accent); color: #0a0a0a; }
