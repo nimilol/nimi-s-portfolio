@@ -1,0 +1,106 @@
+"use client";
+// Site settings: name, pitch, bio, photo, accent color, contact links, nav items, SEO.
+import { useActionState, useState } from "react";
+import { saveSettings } from "@/app/admin/actions";
+import type { Section, Settings } from "@/lib/types";
+import { inputClass } from "./ItemForm";
+import { MediaUpload } from "./MediaUpload";
+
+type FieldDef = { key: keyof Settings; label: string; area?: boolean; hint?: string };
+
+const GROUPS: { title: string; fields: FieldDef[] }[] = [
+  {
+    title: "Hero",
+    fields: [
+      { key: "name", label: "Your name" },
+      { key: "tagline", label: "Small line above your name", hint: "e.g. ai, tech & crypto" },
+      { key: "pitch", label: "One-line pitch", area: true },
+    ],
+  },
+  { title: "About", fields: [{ key: "bio", label: "Bio", area: true, hint: "Leave an empty line between paragraphs." }] },
+  {
+    title: "Contact",
+    fields: [
+      { key: "email", label: "Email" },
+      { key: "x_url", label: "X link", hint: "https://x.com/..." },
+      { key: "telegram_url", label: "Telegram link", hint: "https://t.me/..." },
+    ],
+  },
+  {
+    title: "SEO (Google + link previews)",
+    fields: [
+      { key: "seo_title", label: "Page title" },
+      { key: "seo_description", label: "Description", area: true },
+      { key: "footer_note", label: "Footer note" },
+    ],
+  },
+];
+
+export function SettingsForm({ settings, sections }: { settings: Settings; sections: Section[] }) {
+  const [state, formAction, pending] = useActionState(saveSettings, undefined);
+  const [uploading, setUploading] = useState(false);
+  const [accent, setAccent] = useState(settings.accent);
+  const valid = /^#[0-9a-fA-F]{6}$/.test(accent);
+
+  return (
+    <form action={formAction} className="max-w-2xl space-y-10">
+      <fieldset className="space-y-3">
+        <legend className="mb-3 font-display text-xl">Profile photo</legend>
+        <MediaUpload name="photo_path" kind="image" folder="profile" initialPath={settings.photo_path} onBusyChange={setUploading} />
+      </fieldset>
+
+      <fieldset className="space-y-3">
+        <legend className="mb-3 font-display text-xl">Accent color</legend>
+        <div className="flex items-center gap-3">
+          <input type="color" value={valid ? accent : "#F2B544"} onChange={(e) => setAccent(e.target.value.toUpperCase())} className="h-11 w-14 cursor-pointer border border-line bg-transparent" aria-label="Pick accent color" />
+          <input name="accent" value={accent} onChange={(e) => setAccent(e.target.value)} className={`${inputClass} max-w-40 font-mono`} />
+          <button type="button" onClick={() => setAccent("#F2B544")} className="text-sm text-muted hover:text-fg">
+            Reset (matches your photo)
+          </button>
+        </div>
+        <p className="text-sm" style={{ color: valid ? accent : undefined }}>
+          This is how links, numbers and highlights will look.
+        </p>
+      </fieldset>
+
+      {GROUPS.map((group) => (
+        <fieldset key={group.title} className="space-y-4">
+          <legend className="mb-3 font-display text-xl">{group.title}</legend>
+          {group.fields.map((f) => (
+            <label key={f.key} className="block space-y-2 text-sm">
+              <span className="block">{f.label}</span>
+              {f.area ? (
+                <textarea name={f.key} defaultValue={settings[f.key]} rows={f.key === "bio" ? 8 : 3} className={inputClass} />
+              ) : (
+                <input name={f.key} defaultValue={settings[f.key]} className={inputClass} />
+              )}
+              {f.hint && <span className="block text-xs text-muted">{f.hint}</span>}
+            </label>
+          ))}
+        </fieldset>
+      ))}
+
+      <fieldset className="space-y-2">
+        <legend className="mb-3 font-display text-xl">Top navigation</legend>
+        <input type="hidden" name="nav_present" value="1" />
+        <p className="mb-2 text-xs text-muted">Ticked sections get a link in the top bar (only while they are visible).</p>
+        {sections
+          .filter((s) => s.layout_type !== "hero")
+          .map((s) => (
+            <label key={s.id} className="flex items-center gap-2 text-sm">
+              <input type="checkbox" name="nav" value={s.id} defaultChecked={s.show_in_nav} className="accent-[var(--accent)]" />
+              {s.title}
+            </label>
+          ))}
+      </fieldset>
+
+      <div className="sticky bottom-0 flex items-center gap-4 border-t border-line bg-bg py-4">
+        <button type="submit" disabled={pending || uploading} className="bg-accent px-5 py-2.5 text-sm font-medium text-bg disabled:opacity-50">
+          {uploading ? "Wait for upload…" : pending ? "Saving…" : "Save settings"}
+        </button>
+        {state?.ok && <span className="text-sm text-accent">{state.ok}</span>}
+        {state?.error && <span className="text-sm text-red-400">{state.error}</span>}
+      </div>
+    </form>
+  );
+}
