@@ -9,7 +9,7 @@ export function Stats({ section, items }: { section: Section; items: Item[] }) {
   return (
     <SectionShell section={section}>
       <Reveal>
-        <dl className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-2">
+        <dl className="stats-grid grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-2">
           {items.map((item, i) => (
             <div key={item.id} className={`bg-panel px-7 py-9 md:px-10 md:py-12 ${odd && i === items.length - 1 ? "md:col-span-2" : ""}`}>
               <dd className="font-display text-6xl font-semibold tracking-tight text-accent md:text-7xl">

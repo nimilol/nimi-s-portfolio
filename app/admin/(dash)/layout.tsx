@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { loadAdminData } from "@/lib/admin-data";
 import { requireAdminPage } from "@/lib/auth";
+import { FONTS, googleFontsHref } from "@/lib/fonts";
 import { SETTINGS_LAYOUTS } from "@/lib/layouts";
 import { sectionName } from "@/lib/nav";
 
@@ -21,6 +22,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
 
   return (
     <div className="min-h-screen md:flex">
+      {/* every font, so the font pickers can preview them */}
+      <link rel="stylesheet" href={googleFontsHref(FONTS.map((f) => f.id))!} precedence="default" />
       <Sidebar sections={sections} email={user.email ?? ""} />
       <main className="min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
         {data.ok ? (

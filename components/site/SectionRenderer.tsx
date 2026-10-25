@@ -1,4 +1,6 @@
 // Picks the right look for a section based on its layout.
+import type { CSSProperties } from "react";
+import { fontVars, type FontRole } from "@/lib/fonts";
 import { mediaUrl } from "@/lib/media";
 import type { Item, Section, Settings } from "@/lib/types";
 import { CircleImageShowcase } from "./CircleImageShowcase";
@@ -31,19 +33,27 @@ function toMedia(items: Item[], type: "image" | "video"): MediaItem[] {
     }));
 }
 
-export function SectionRenderer({
-  section,
-  items,
-  settings,
-  workHref,
-  contactHref,
-}: {
+type Props = {
   section: Section;
   items: Item[];
   settings: Settings;
+  fonts?: Partial<Record<FontRole, string>>; // this section's own fonts (from admin)
   workHref: string | null;
   contactHref: string;
-}) {
+};
+
+export function SectionRenderer({ fonts, ...props }: Props) {
+  const vars = fonts ? fontVars(fonts) : {};
+  if (Object.keys(vars).length === 0) return <SectionBody {...props} />;
+  // "contents" keeps the layout exactly the same; it only passes the fonts down to this section.
+  return (
+    <div className="contents" style={{ ...vars, fontFamily: "var(--site-body)" } as CSSProperties}>
+      <SectionBody {...props} />
+    </div>
+  );
+}
+
+function SectionBody({ section, items, settings, workHref, contactHref }: Omit<Props, "fonts">) {
   switch (section.layout_type) {
     case "hero":
       return <Hero settings={settings} workHref={workHref} contactHref={contactHref} />;

@@ -109,7 +109,17 @@ Final checklist:
   The optional **Tag** shows as a small label (e.g. AI, GROWTH).
 - **Currently:** a bullet list. Tick "Highlight this line" to give it a yellow dot (e.g. "open to collaborations").
 - **Built-in sections** can only be hidden. **Your custom sections** can also be deleted.
-- After you save, **reload the live site** to see the change. No redeploy is needed.
+- After you save, the change is **live straight away**: just reload the site. No redeploy is needed.
+- **Dashboard status line:** the top of the dashboard tells you if the live site is really reading your database.
+  - "✓ Your live site reads from this database": all good.
+  - "Your database has no sections yet": click **Load my starting content** (same as running `seed.sql`).
+  - "The live site can't read your database": run `supabase/schema.sql` again in the SQL Editor.
+- **If a save says "The database refused this change"**: the email inside `is_admin()` at the top of
+  `supabase/schema.sql` doesn't match your login. Fix it there, run the file again, and save again.
+- **Fonts:** in **Site settings → Fonts** pick the font for headings, body text and small labels for the whole site.
+  To give one section its own look, open that section and use **Font style for this section** ("Site font" = follow Site settings).
+- **Background:** in **Site settings → Background** choose **Liquid glass** (black & white light that shifts as you scroll,
+  with frosted-glass cards) or **Plain black**.
 
 ## Video file size limit
 

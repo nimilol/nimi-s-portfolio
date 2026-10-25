@@ -64,12 +64,20 @@ export type Settings = {
   seo_title: string;
   seo_description: string;
   footer_note: string;
+  font_heading: string; // font ids from lib/fonts.ts
+  font_body: string;
+  font_label: string;
+  section_fonts: string; // JSON: { [sectionId]: { heading, body, label } }
+  background_style: string; // "liquid" or "plain"
 };
 
 export type SiteData = {
   sections: Section[];
   items: Item[];
   settings: Settings;
-  // true when the data came from the built-in copy (Supabase not connected yet)
+  // true when the sections came from the built-in copy (Supabase not connected yet, empty, or failing)
   fromSeed: boolean;
+  // where the live page got its content from
+  status: "db" | "no-config" | "empty" | "error";
+  error?: string;
 };

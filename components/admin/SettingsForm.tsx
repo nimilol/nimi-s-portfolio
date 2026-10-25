@@ -4,6 +4,8 @@ import { useActionState, useState } from "react";
 import { saveSettings } from "@/app/admin/actions";
 import { sectionName } from "@/lib/nav";
 import type { Section, Settings } from "@/lib/types";
+import { ROLES } from "@/lib/fonts";
+import { FontPicker } from "./FontPicker";
 import { inputClass } from "./ItemForm";
 import { MediaUpload } from "./MediaUpload";
 
@@ -45,6 +47,8 @@ export function SettingsForm({ settings, sections }: { settings: Settings; secti
   const [uploading, setUploading] = useState(false);
   const [accent, setAccent] = useState(settings.accent);
   const [avatar, setAvatar] = useState(settings.floating_avatar !== "off");
+  const [liquid, setLiquid] = useState(settings.background_style !== "plain");
+  const fontValue = { heading: settings.font_heading, body: settings.font_body, label: settings.font_label };
   const valid = /^#[0-9a-fA-F]{6}$/.test(accent);
 
   return (
@@ -91,6 +95,37 @@ export function SettingsForm({ settings, sections }: { settings: Settings; secti
         <p className="text-sm" style={{ color: valid ? accent : undefined }}>
           This is how links, numbers and highlights will look.
         </p>
+      </fieldset>
+
+      <fieldset className="space-y-4">
+        <legend className="mb-3 font-display text-xl">Fonts (whole site)</legend>
+        <p className="text-xs text-muted">Each section can also have its own fonts: open the section and use &ldquo;Font style for this section&rdquo;.</p>
+        <div className="grid gap-5 md:grid-cols-3">
+          {ROLES.map((role) => (
+            <FontPicker key={role} name={`font_${role}`} role={role} value={fontValue[role]} />
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="space-y-3">
+        <legend className="mb-3 font-display text-xl">Background</legend>
+        <input type="hidden" name="background_style" value={liquid ? "liquid" : "plain"} />
+        <div className="flex flex-wrap gap-3 text-sm">
+          {[
+            [true, "Liquid glass (black & white)"],
+            [false, "Plain black"],
+          ].map(([value, label]) => (
+            <button
+              key={String(value)}
+              type="button"
+              onClick={() => setLiquid(value as boolean)}
+              className={`border px-3 py-2 ${liquid === value ? "border-accent text-fg" : "border-line text-muted hover:text-fg"}`}
+            >
+              {label as string}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-muted">Liquid glass: soft silver light that shifts as visitors scroll, with frosted-glass cards.</p>
       </fieldset>
 
       {GROUPS.map((group) => (

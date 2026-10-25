@@ -1,10 +1,12 @@
 // One section: its settings + its items (add, edit, delete, drag to reorder).
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SectionFontsForm } from "@/components/admin/SectionFontsForm";
 import { SectionForm } from "@/components/admin/SectionForm";
 import { SortableList } from "@/components/admin/SortableList";
 import { loadAdminData } from "@/lib/admin-data";
 import { requireAdminPage } from "@/lib/auth";
+import { parseSectionFonts } from "@/lib/fonts";
 import { LAYOUT_LABELS, SETTINGS_LAYOUTS } from "@/lib/layouts";
 import { mediaUrl } from "@/lib/media";
 import { sectionName } from "@/lib/nav";
@@ -45,10 +47,12 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
           {LAYOUT_LABELS[section.layout_type]} ·{" "}
           <span className={section.visible ? "text-accent" : ""}>{section.status}</span>
         </p>
-        {saved && <p className="mt-3 text-sm text-accent">Saved. Reload the live site to see it.</p>}
+        {saved && <p className="mt-3 text-sm text-accent">Saved. It&apos;s live on your site now.</p>}
       </div>
 
       <SectionForm section={section} />
+
+      <SectionFontsForm sectionId={section.id} fonts={parseSectionFonts(data.settings.section_fonts)[section.id] ?? {}} />
 
       {fromSettings ? (
         <p className="border border-line p-5 text-sm text-muted">

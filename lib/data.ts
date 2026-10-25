@@ -25,21 +25,27 @@ export async function getSiteData(): Promise<SiteData> {
       supabase.from("items").select("*").order("sort_order"),
       supabase.from("settings").select("key, value"),
     ]);
-    if (sections.error || items.error || settings.error) {
-      console.error("Supabase read failed, using built-in content:", sections.error ?? items.error ?? settings.error);
-      return SEED_DATA;
+    // Settings are used on their own, so a site-settings edit always shows even if sections can't load.
+    const liveSettings = settings.error ? DEFAULT_SETTINGS : rowsToSettings(settings.data);
+    const failed = sections.error ?? items.error ?? settings.error;
+    if (failed) {
+      console.error("Supabase read failed, using built-in sections:", failed);
+      return { ...SEED_DATA, settings: liveSettings, status: "error", error: failed.message };
     }
-    // Database is connected but the seed SQL hasn't been run yet: show built-in content.
-    if (!sections.data || sections.data.length === 0) return SEED_DATA;
+    // Database is connected but has no sections yet (seed not loaded): built-in sections + your settings.
+    if (!sections.data || sections.data.length === 0) {
+      return { ...SEED_DATA, settings: liveSettings, status: "empty" };
+    }
     return {
       sections: sections.data as Section[],
       items: (items.data ?? []).map((i) => ({ ...i, extra: i.extra ?? {} })) as Item[],
-      settings: rowsToSettings(settings.data),
+      settings: liveSettings,
       fromSeed: false,
+      status: "db",
     };
   } catch (error) {
     console.error("Supabase unreachable, using built-in content:", error);
-    return SEED_DATA;
+    return { ...SEED_DATA, status: "error", error: error instanceof Error ? error.message : String(error) };
   }
 }
 

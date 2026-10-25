@@ -17,7 +17,7 @@ export function TopBar({ name, links, xUrl }: { name: string; links: Link[]; xUr
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 bg-bg transition-colors duration-300 ${
+      className={`topbar fixed inset-x-0 top-0 z-40 bg-bg transition-colors duration-300 ${
         scrolled || open ? "border-b border-line" : "border-b border-transparent"
       }`}
     >

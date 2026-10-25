@@ -12,7 +12,8 @@ import { isStoragePath } from "@/lib/media";
 import { createClient } from "@/lib/supabase/server";
 import { MEDIA_BUCKET, isSupabaseConfigured } from "@/lib/supabase/env";
 import type { LayoutType, Settings } from "@/lib/types";
-import { DEFAULT_SETTINGS } from "@/lib/seed";
+import { isFontId, parseSectionFonts, ROLES } from "@/lib/fonts";
+import { DEFAULT_SETTINGS, SEED_ITEMS, SEED_SECTIONS } from "@/lib/seed";
 
 export type FormState = { error?: string; ok?: string } | undefined;
 
@@ -32,6 +33,21 @@ function safeUrl(value: string) {
 
 function refreshSite() {
   revalidatePath("/", "layout");
+}
+
+// Supabase doesn't report an error when Row Level Security quietly blocks a change: it just changes 0 rows.
+// This turns that silent "nothing happened" into a clear message.
+const BLOCKED =
+  "The database refused this change, so nothing was saved. In Supabase, check that the email inside is_admin() " +
+  "(top of supabase/schema.sql) is exactly your login email, then run schema.sql again.";
+
+// A copy of a row without the given columns (e.g. the built-in "seed-..." ids; the database makes real ones).
+function withoutKeys<T extends object>(row: T, keys: string[]) {
+  return Object.fromEntries(Object.entries(row).filter(([key]) => !keys.includes(key)));
+}
+
+function changed(res: { data: unknown[] | null }) {
+  return !!res.data && res.data.length > 0;
 }
 
 async function removeFiles(paths: (string | null | undefined)[]) {
@@ -118,8 +134,9 @@ export async function saveItem(_prev: FormState, form: FormData): Promise<FormSt
   if (id) {
     // Editing: if a file was replaced, delete the old one from storage.
     const { data: old } = await supabase.from("items").select("media_path, thumb_path").eq("id", id).single();
-    const { error } = await supabase.from("items").update(row).eq("id", id);
-    if (error) return { error: error.message };
+    const res = await supabase.from("items").update(row).eq("id", id).select("id");
+    if (res.error) return { error: res.error.message };
+    if (!changed(res)) return { error: BLOCKED };
     if (old) {
       await removeFiles([
         old.media_path !== row.media_path ? old.media_path : null,
@@ -135,8 +152,9 @@ export async function saveItem(_prev: FormState, form: FormData): Promise<FormSt
       .order("sort_order", { ascending: false })
       .limit(1);
     row.sort_order = (last?.[0]?.sort_order ?? -1) + 1;
-    const { error } = await supabase.from("items").insert(row);
-    if (error) return { error: error.message };
+    const res = await supabase.from("items").insert(row).select("id");
+    if (res.error) return { error: res.error.message };
+    if (!changed(res)) return { error: BLOCKED };
   }
 
   refreshSite();
@@ -146,8 +164,9 @@ export async function saveItem(_prev: FormState, form: FormData): Promise<FormSt
 export async function deleteItem(itemId: string) {
   const { supabase } = await requireAdmin();
   const { data: item } = await supabase.from("items").select("media_path, thumb_path").eq("id", itemId).single();
-  const { error } = await supabase.from("items").delete().eq("id", itemId);
-  if (error) throw new Error(error.message);
+  const res = await supabase.from("items").delete().eq("id", itemId).select("id");
+  if (res.error) throw new Error(res.error.message);
+  if (!changed(res)) throw new Error(BLOCKED);
   if (item) await removeFiles([item.media_path, item.thumb_path]);
   refreshSite();
 }
@@ -155,8 +174,9 @@ export async function deleteItem(itemId: string) {
 export async function reorderItems(ids: string[]) {
   const { supabase } = await requireAdmin();
   for (let i = 0; i < ids.length; i++) {
-    const { error } = await supabase.from("items").update({ sort_order: i }).eq("id", ids[i]);
-    if (error) throw new Error(error.message);
+    const res = await supabase.from("items").update({ sort_order: i }).eq("id", ids[i]).select("id");
+    if (res.error) throw new Error(res.error.message);
+    if (!changed(res)) throw new Error(BLOCKED);
   }
   refreshSite();
 }
@@ -185,7 +205,7 @@ export async function saveSection(_prev: FormState, form: FormData): Promise<For
   const label = text(form, "label");
   if (!title && !label) return { error: "Add a label or a heading (or both)." };
   const variant = text(form, "variant");
-  const { error } = await supabase
+  const res = await supabase
     .from("sections")
     .update({
       label: label || null,
@@ -195,16 +215,19 @@ export async function saveSection(_prev: FormState, form: FormData): Promise<For
       is_hidden: form.get("is_hidden") === "on",
       show_in_nav: form.get("show_in_nav") === "on",
     })
-    .eq("id", id);
-  if (error) return { error: error.message };
+    .eq("id", id)
+    .select("id");
+  if (res.error) return { error: res.error.message };
+  if (!changed(res)) return { error: BLOCKED };
   refreshSite();
-  return { ok: "Saved." };
+  return { ok: "Saved. It's live on your site now." };
 }
 
 export async function setSectionHidden(id: string, hidden: boolean) {
   const { supabase } = await requireAdmin();
-  const { error } = await supabase.from("sections").update({ is_hidden: hidden }).eq("id", id);
-  if (error) throw new Error(error.message);
+  const res = await supabase.from("sections").update({ is_hidden: hidden }).eq("id", id).select("id");
+  if (res.error) throw new Error(res.error.message);
+  if (!changed(res)) throw new Error(BLOCKED);
   refreshSite();
 }
 
@@ -259,8 +282,9 @@ export async function deleteSection(id: string) {
   if (section.is_builtin) throw new Error("Built-in sections can't be deleted, only hidden.");
 
   const { data: items } = await supabase.from("items").select("media_path, thumb_path").eq("section_id", id);
-  const { error } = await supabase.from("sections").delete().eq("id", id); // items are deleted with it
-  if (error) throw new Error(error.message);
+  const res = await supabase.from("sections").delete().eq("id", id).select("id"); // items are deleted with it
+  if (res.error) throw new Error(res.error.message);
+  if (!changed(res)) throw new Error(BLOCKED);
   await removeFiles((items ?? []).flatMap((i) => [i.media_path, i.thumb_path]));
   refreshSite();
   redirect("/admin");
@@ -269,8 +293,9 @@ export async function deleteSection(id: string) {
 export async function reorderSections(ids: string[]) {
   const { supabase } = await requireAdmin();
   for (let i = 0; i < ids.length; i++) {
-    const { error } = await supabase.from("sections").update({ sort_order: i }).eq("id", ids[i]);
-    if (error) throw new Error(error.message);
+    const res = await supabase.from("sections").update({ sort_order: i }).eq("id", ids[i]).select("id");
+    if (res.error) throw new Error(res.error.message);
+    if (!changed(res)) throw new Error(BLOCKED);
   }
   refreshSite();
 }
@@ -296,14 +321,22 @@ export async function saveSettings(_prev: FormState, form: FormData): Promise<Fo
   }
 
   if (values.floating_avatar !== undefined) values.floating_avatar = values.floating_avatar === "off" ? "off" : "on";
+  if (values.background_style !== undefined) values.background_style = values.background_style === "plain" ? "plain" : "liquid";
+  for (const key of ["font_heading", "font_body", "font_label"] as const) {
+    if (values[key] !== undefined && !isFontId(values[key])) return { error: "Pick a font from the list." };
+  }
+  delete values.section_fonts; // saved from each section's page instead
 
   // Remember the old uploaded images so we can delete them if they were replaced.
   const IMAGE_KEYS = ["photo_path", "hero_image_path"] as const;
   const { data: oldImages } = await supabase.from("settings").select("key, value").in("key", [...IMAGE_KEYS]);
 
   const rows = Object.entries(values).map(([key, value]) => ({ key, value }));
-  const { error } = await supabase.from("settings").upsert(rows);
-  if (error) return { error: error.message };
+  if (rows.length > 0) {
+    const res = await supabase.from("settings").upsert(rows).select("key");
+    if (res.error) return { error: res.error.message };
+    if (!changed(res)) return { error: BLOCKED };
+  }
 
   // Which sections show in the top navigation.
   const navIds = form.getAll("nav").map(String);
@@ -311,7 +344,10 @@ export async function saveSettings(_prev: FormState, form: FormData): Promise<Fo
     const { data: sections } = await supabase.from("sections").select("id, show_in_nav");
     for (const s of sections ?? []) {
       const want = navIds.includes(s.id);
-      if (want !== s.show_in_nav) await supabase.from("sections").update({ show_in_nav: want }).eq("id", s.id);
+      if (want === s.show_in_nav) continue;
+      const res = await supabase.from("sections").update({ show_in_nav: want }).eq("id", s.id).select("id");
+      if (res.error) return { error: res.error.message };
+      if (!changed(res)) return { error: BLOCKED };
     }
   }
 
@@ -321,5 +357,77 @@ export async function saveSettings(_prev: FormState, form: FormData): Promise<Fo
   }
 
   refreshSite();
-  return { ok: "Settings saved. Reload the live site to see them." };
+  return { ok: "Settings saved. They're live on your site now." };
+}
+
+// ---------- fonts for one section ----------
+
+export async function saveSectionFonts(_prev: FormState, form: FormData): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+  const sectionId = text(form, "section_id");
+  if (!sectionId) return { error: "Section not found." };
+
+  const { data: row, error: readError } = await supabase.from("settings").select("value").eq("key", "section_fonts").maybeSingle();
+  if (readError) return { error: readError.message };
+  const all = parseSectionFonts(typeof row?.value === "string" ? row.value : null);
+
+  const picked: Partial<Record<(typeof ROLES)[number], string>> = {};
+  for (const role of ROLES) {
+    const id = text(form, `font_${role}`);
+    if (id && !isFontId(id)) return { error: "Pick a font from the list." };
+    if (id) picked[role] = id;
+  }
+  if (Object.keys(picked).length) all[sectionId] = picked;
+  else delete all[sectionId];
+
+  const res = await supabase
+    .from("settings")
+    .upsert({ key: "section_fonts", value: JSON.stringify(all) })
+    .select("key");
+  if (res.error) return { error: res.error.message };
+  if (!changed(res)) return { error: BLOCKED };
+  refreshSite();
+  return { ok: "Fonts saved. They're live on your site now." };
+}
+
+// ---------- first-time setup ----------
+
+// Copies the built-in starting content into an empty database (same content as supabase/seed.sql),
+// so you can edit it in admin.
+export async function loadStartingContent(): Promise<FormState> {
+  const { supabase } = await requireAdmin();
+  const { count, error: countError } = await supabase.from("sections").select("id", { count: "exact", head: true });
+  if (countError) return { error: countError.message };
+  if (count) return { error: "Your database already has sections. Nothing was changed." };
+
+  const { data: created, error } = await supabase
+    .from("sections")
+    .insert(SEED_SECTIONS.map((section) => withoutKeys(section, ["id"])))
+    .select("id, slug");
+  if (error) return { error: error.message };
+  if (!created?.length) return { error: BLOCKED };
+
+  const idFor = new Map(created.map((s) => [`seed-${s.slug}`, s.id]));
+  const items = SEED_ITEMS.filter((i) => idFor.has(i.section_id)).map((item) => ({
+    ...withoutKeys(item, ["id", "created_at"]),
+    section_id: idFor.get(item.section_id)!,
+  }));
+  if (items.length) {
+    const res = await supabase.from("items").insert(items).select("id");
+    if (res.error) return { error: res.error.message };
+  }
+
+  // Fill in any settings you haven't saved yet (never overwrites yours).
+  const { data: existing } = await supabase.from("settings").select("key");
+  const have = new Set((existing ?? []).map((r) => r.key));
+  const missing = Object.entries(DEFAULT_SETTINGS)
+    .filter(([key]) => !have.has(key))
+    .map(([key, value]) => ({ key, value }));
+  if (missing.length) {
+    const res = await supabase.from("settings").insert(missing);
+    if (res.error) return { error: res.error.message };
+  }
+
+  refreshSite();
+  return { ok: "Starting content loaded. You can edit everything now." };
 }

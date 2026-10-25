@@ -27,6 +27,11 @@ export const DEFAULT_SETTINGS: Settings = {
   seo_description:
     "Nimi writes about and builds with AI, tech and crypto. Threads, videos, graphics and shipped work.",
   footer_note: "AI-assisted. Shipped live.",
+  font_heading: "inter-tight",
+  font_body: "inter",
+  font_label: "jetbrains-mono",
+  section_fonts: "{}",
+  background_style: "liquid",
 };
 
 // [slug, label, heading, layout, show_in_nav, variant]
@@ -125,4 +130,5 @@ export const SEED_DATA: SiteData = {
   items: SEED_ITEMS,
   settings: DEFAULT_SETTINGS,
   fromSeed: true,
+  status: "no-config",
 };
