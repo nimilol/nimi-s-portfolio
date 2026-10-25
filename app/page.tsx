@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { DotNav } from "@/components/site/DotNav";
 import { FloatingAvatar } from "@/components/site/FloatingAvatar";
 import { LiquidBackground } from "@/components/site/LiquidBackground";
+import { ScrollManager } from "@/components/site/ScrollManager";
 import { SectionRenderer } from "@/components/site/SectionRenderer";
 import { TopBar } from "@/components/site/TopBar";
 import { getSiteData, safeAccent } from "@/lib/data";
@@ -15,6 +16,10 @@ import { itemsFor, visibleSections } from "@/lib/visibility";
 
 // Build the page fresh on every visit, so what you save in admin is live straight away.
 export const dynamic = "force-dynamic";
+
+// Runs before the page is shown: start at the top and drop any "#section" from the address,
+// so the browser never jumps down (e.g. to #contact) when the site is opened or reloaded.
+const OPEN_AT_TOP_SCRIPT = `try{history.scrollRestoration="manual";if(location.hash){history.replaceState(null,"",location.pathname+location.search)}}catch(e){}`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { settings } = await getSiteData();
@@ -74,6 +79,9 @@ export default async function Home() {
           <link rel="stylesheet" href={fontsHref} precedence="default" />
         </>
       )}
+      {/* always open at the top (runs before the page shows, so there's no jump) */}
+      <script dangerouslySetInnerHTML={{ __html: OPEN_AT_TOP_SCRIPT }} />
+      <ScrollManager />
       {liquid && <LiquidBackground />}
       <TopBar name={settings.name} links={navLinks} xUrl={settings.x_url} />
       <DotNav dots={dots} />
